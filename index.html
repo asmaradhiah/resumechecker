@@ -66,7 +66,7 @@
   }
   textarea {
     width: 100%;
-    min-height: 190px;
+    min-height: 210px;
     font-family: Consolas, "Courier New", monospace;
     font-size: 13px;
     padding: 10px;
@@ -127,6 +127,7 @@
     font-size: 14px;
   }
   .note-item.ok { border-left-color: var(--ok-ink); background: var(--ok-bg); }
+  .note-item.info { border-left-color: var(--accent); background: var(--accent-soft); }
   .summary-line { font-size: 13px; color: var(--muted); margin: 8px 0 12px; }
   .notes-columns { display: flex; gap: 16px; flex-wrap: wrap; }
   .notes-columns > div { flex: 1 1 300px; }
@@ -148,18 +149,19 @@
   <section id="section-paste">
     <h2>1. Paste Rate Table <span class="purpose">Paste or edit the monthly FSC rate table text below</span></h2>
     <div class="body">
-      <p class="helper">Tip: paste directly from your spreadsheet or email. Each line should read like
-        <strong>Origin Country | Destination Region | Rate</strong> — pipes, tabs, commas, or extra spaces all work as separators.
+      <p class="helper">Tip: paste directly from your spreadsheet or email. Two formats both work —
+        <strong>list rows</strong> like <em>Origin Country | Destination Region | Rate</em>, or a
+        <strong>full matrix table</strong> where the first line lists the destination regions (Greater China, North Asia, ASEAN, South Asia, AU &amp; NZ, Middle East &amp; EU, Africa, Domestic, US) and each line below is one origin country followed by its rates. A dash (—) means no rate is published.
         Results in Section 2 update automatically as you type.</p>
       <textarea id="rate-input" spellcheck="false" aria-label="FSC rate table text input"></textarea>
       <div class="actions">
         <button id="btn-parse" type="button">Re-parse Table</button>
-        <button id="btn-sample" type="button" class="secondary">Load Malaysia Sample</button>
+        <button id="btn-sample" type="button" class="secondary">Load Full Matrix Sample</button>
         <button id="btn-clear" type="button" class="secondary">Clear</button>
         <span id="parse-status" style="font-size:13px;color:var(--muted);"></span>
       </div>
 
-      <p class="sample-label">Sample pasted table (for reference)</p>
+      <p class="sample-label">Sample pasted tables (for reference)</p>
       <div class="sample-box" id="sample-box"></div>
     </div>
   </section>
@@ -176,7 +178,7 @@
               <th>#</th>
               <th>Origin Country</th>
               <th>Destination Region</th>
-              <th>FSC Rate</th>
+              <th>FSC Rate (USD/kg)</th>
               <th>Grouped Pair</th>
               <th>Status</th>
             </tr>
@@ -200,8 +202,8 @@
           <h3>Simple Reminders</h3>
           <ul class="reminders">
             <li>Rates shown here are parsed from the text you pasted — always confirm against the official monthly FSC notice before quoting.</li>
-            <li>Check that each destination region uses your team's standard names (e.g. APAC, EMEA, Americas).</li>
-            <li>A rate without a unit (per kg, per shipment) is listed as-is — add the unit in the source table if your quotes need it.</li>
+            <li>A dash (—) in the source table means no fuel surcharge is published for that lane; those lanes are listed as "No rate".</li>
+            <li>Check that each destination region uses your team's standard names (Greater China, North Asia, ASEAN, South Asia, AU &amp; NZ, Middle East &amp; EU, Africa, Domestic, US).</li>
             <li>This page holds nothing between visits: copy results out before closing the tab.</li>
           </ul>
         </div>
@@ -215,23 +217,53 @@
 (function () {
   "use strict";
 
-  // ---------- Sample data (made up, Malaysia-specific, for demo only) ----------
+  // ---------- Sample data (made-up demo values in the same layout as the monthly FSC notice; for illustration only) ----------
   var SAMPLE_TABLE = [
-    "Malaysia | APAC | 0.42",
-    "Malaysia | EMEA | 0.68",
-    "Malaysia | Americas | 0.75"
+    "Malaysia | ASEAN | 0.15",
+    "Malaysia | Greater China | 0.29",
+    "Malaysia | US | 1.33"
+  ].join("\n");
+
+  var SAMPLE_MATRIX = [
+    "Origin Country\tGreater China\tNorth Asia\tASEAN\tSouth Asia\tAU & NZ\tMiddle East & EU\tAfrica\tDomestic\tUS",
+    "MY\t0.29\t0.45\t0.15\t0.27\t0.40\t0.63\t0.55\t0.13\t1.33",
+    "SG\t0.27\t0.45\t0.15\t0.29\t0.44\t0.59\t0.53\t—\t1.33",
+    "TH\t0.22\t0.37\t0.14\t0.22\t0.50\t0.54\t0.60\t0.03\t—",
+    "KR\t0.15\t—\t0.36\t0.45\t0.50\t0.74\t0.79\t—\t—"
   ].join("\n");
 
   var SAMPLE_BOX_TEXT =
-    "Malaysia | APAC      | 0.42\n" +
-    "Malaysia | EMEA      | 0.68\n" +
-    "Malaysia | Americas  | 0.75";
+    "List format:\n" +
+    "Malaysia | ASEAN        | 0.15\n" +
+    "Malaysia | Greater China| 0.29\n" +
+    "Malaysia | US           | 1.33\n" +
+    "\n" +
+    "Matrix format (tab-separated, like the spreadsheet):\n" +
+    "Origin Country\tGreater China\tNorth Asia\tASEAN\t...\n" +
+    "MY\t0.29\t0.45\t0.15\t...\n" +
+    "SG\t0.27\t0.45\t0.15\t...";
 
   // Standard destination regions recognized by the mapper
   var KNOWN_REGIONS = [
-    "APAC", "EMEA", "Americas", "Middle East", "South Asia",
-    "North Asia", "Europe", "Africa", "Oceania", "Domestic"
+    "Greater China", "North Asia", "ASEAN", "South Asia",
+    "AU & NZ", "Middle East & EU", "Africa", "Domestic", "US"
   ];
+
+  // ISO-style origin codes expanded to country names for readability
+  var CODE_TO_NAME = {
+    CN: "China", HK: "Hong Kong", MO: "Macau", MY: "Malaysia", ID: "Indonesia",
+    KR: "South Korea", SG: "Singapore", VN: "Vietnam", BD: "Bangladesh",
+    KH: "Cambodia", LA: "Laos", TH: "Thailand", TW: "Taiwan", IN: "India",
+    AU: "Australia", MM: "Myanmar", LK: "Sri Lanka", UZ: "Uzbekistan",
+    KZ: "Kazakhstan", PK: "Pakistan", BN: "Brunei", NZ: "New Zealand",
+    SA: "Saudi Arabia", MV: "Maldives", TR: "Turkey", JP: "Japan", PH: "Philippines",
+    NP: "Nepal", FJ: "Fiji", AE: "United Arab Emirates", QA: "Qatar"
+  };
+
+  function expandOrigin(s) {
+    var key = s.trim().toUpperCase();
+    return CODE_TO_NAME[key] || s.trim();
+  }
 
   // ---------- Element refs ----------
   var input = document.getElementById("rate-input");
@@ -241,45 +273,78 @@
   var notesIssues = document.getElementById("notes-issues");
   var sampleBox = document.getElementById("sample-box");
 
+  var DASH = /^[-—–\u2014]?$/;
+
+  function isRateValue(s) {
+    return /^[$€]?\s*\d+(\.\d+)?\s*(MYR|USD|EUR)?(\s*\/\s*kg)?$/i.test(s);
+  }
+
+  function canonicalRegion(s) {
+    var t = (s || "").trim().replace(/\s+/g, " ");
+    if (!t) return null;
+    for (var i = 0; i < KNOWN_REGIONS.length; i++) {
+      if (KNOWN_REGIONS[i].toLowerCase() === t.toLowerCase()) return KNOWN_REGIONS[i];
+    }
+    return null;
+  }
+
   // ---------- Parsing ----------
-  // Splits each line on pipe, tab, comma, or runs of 2+ spaces.
+  // Supports two formats:
+  //  1) list rows: "Origin | Region | Rate"
+  //  2) matrix: a header line of region names, then "CODE rate rate rate ..." per origin
   function parseTable(text) {
-    var rows = [];
+    var entries = [];
     var lines = text.split(/\r?\n/);
+    var headers = null;
+
     for (var i = 0; i < lines.length; i++) {
       var raw = lines[i].trim();
       if (!raw) continue;
-      // skip obvious header lines like "Origin | Region | Rate"
-      if (/^origin/i.test(raw) && /region|dest|rate/i.test(raw)) continue;
+
       var parts = raw.split(/\t|\||,|\s{2,}/).map(function (p) { return p.trim(); })
                     .filter(function (p) { return p !== ""; });
-      rows.push({
+      if (parts.length === 0) continue;
+
+      // Header line: 2+ recognized region names in one line
+      var regionCount = 0;
+      for (var j = 0; j < parts.length; j++) {
+        if (canonicalRegion(parts[j])) regionCount++;
+      }
+      if (regionCount >= 2) {
+        headers = parts.map(function (p) { return canonicalRegion(p) || p; });
+        continue;
+      }
+
+      // Matrix data row: first cell is origin, remaining cells are rates/dashes (>=2 cells)
+      var rateLike = 0;
+      for (var k = 1; k < parts.length; k++) {
+        if (isRateValue(parts[k]) || DASH.test(parts[k])) rateLike++;
+      }
+      if (parts.length >= 3 && rateLike >= parts.length - 1 && !canonicalRegion(parts[0])) {
+        var origin = expandOrigin(parts[0]);
+        for (var m = 1; m < parts.length; m++) {
+          var region = headers && headers[m] ? headers[m] : (headers ? "Unknown column " + m : canonicalRegion(parts[m]) || ("Column " + m));
+          entries.push({ line: i + 1, raw: raw, origin: origin, region: region, rate: parts[m] });
+        }
+        continue;
+      }
+
+      // List row: "Origin | Region | Rate"
+      entries.push({
         line: i + 1,
         raw: raw,
-        origin: parts.length > 0 ? parts[0] : "",
+        origin: parts.length > 0 ? expandOrigin(parts[0]) : "",
         region: parts.length > 1 ? parts[1] : "",
         rate: parts.length > 2 ? parts[2] : ""
       });
     }
-    return rows;
-  }
-
-  function isNumericRate(s) {
-    return /^[$€]?\s*\d+(\.\d+)?\s*(MYR|USD|EUR)?(\s*\/\s*kg)?$/i.test(s);
-  }
-
-  function regionStatus(region) {
-    if (!region) return "missing";
-    for (var i = 0; i < KNOWN_REGIONS.length; i++) {
-      if (KNOWN_REGIONS[i].toLowerCase() === region.toLowerCase()) return "known";
-    }
-    return "unclear";
+    return entries;
   }
 
   // ---------- Rendering ----------
   function render() {
     var rows = parseTable(input.value);
-    var okCount = 0;
+    var okCount = 0, noRateCount = 0;
     var issues = [];
 
     resultsBody.innerHTML = "";
@@ -291,22 +356,25 @@
     }
 
     rows.forEach(function (row, idx) {
-      var rStatus = regionStatus(row.region);
-      var rateOk = row.rate !== "" && isNumericRate(row.rate);
+      var rStatus = canonicalRegion(row.region);
+      var isDash = DASH.test(row.rate);
+      var rateOk = row.rate !== "" && (isDash || isRateValue(row.rate));
       var originOk = row.origin !== "";
-      var complete = originOk && rStatus === "known" && rateOk;
+      var complete = originOk && rStatus && rateOk && !isDash;
+      var noRate = originOk && rStatus && rateOk && isDash;
       if (complete) okCount++;
+      if (noRate) noRateCount++;
 
       var statusBadge = complete
         ? '<span class="badge ok">Mapped</span>'
-        : '<span class="badge warn">Needs attention</span>';
+        : noRate
+          ? '<span class="badge warn">No rate</span>'
+          : '<span class="badge warn">Needs attention</span>';
 
-      var pairText = originOk && row.region
-        ? row.origin + " → " + row.region
-        : "—";
+      var pairText = originOk && row.region ? row.origin + " → " + row.region : "—";
 
       var tr = document.createElement("tr");
-      if (!complete) tr.style.background = "#fffaf0";
+      if (!complete && !noRate) tr.style.background = "#fffaf0";
       tr.innerHTML =
         "<td>" + (idx + 1) + "</td>" +
         "<td>" + escapeHtml(originOk ? row.origin : "(missing)") + "</td>" +
@@ -318,23 +386,27 @@
 
       // Collect issues for Quick Notes
       if (!originOk) {
-        issues.push("Line " + row.line + ": origin country is missing — text: \u201C" + row.raw + "\u201D");
+        issues.push({ type: "issue", msg: "Line " + row.line + ": origin country is missing — text: \u201C" + row.raw + "\u201D" });
       }
-      if (!row.region) {
-        issues.push("Line " + row.line + ": destination region is missing for \u201C" + row.origin + "\u201D.");
-      } else if (rStatus === "unclear") {
-        issues.push("Line " + row.line + ": destination region \u201C" + row.region + "\u201D is not a standard region name (expected e.g. APAC, EMEA, Americas).");
+      if (originOk && !row.region) {
+        issues.push({ type: "issue", msg: "Line " + row.line + ": destination region is missing for \u201C" + row.origin + "\u201D." });
+      } else if (originOk && row.region && !rStatus) {
+        issues.push({ type: "issue", msg: "Line " + row.line + ": destination region \u201C" + row.region + "\u201D is not a standard region name (expected e.g. Greater China, ASEAN, AU & NZ, US)." });
       }
-      if (row.rate === "") {
-        issues.push("Line " + row.line + ": rate value is missing.");
-      } else if (!rateOk) {
-        issues.push("Line " + row.line + ": rate \u201C" + row.rate + "\u201D doesn't look like a number — check for typos or extra text.");
+      if (originOk && row.rate === "") {
+        issues.push({ type: "issue", msg: "Line " + row.line + ": rate value is missing for " + row.origin + " → " + (row.region || "?") + "." });
+      } else if (originOk && row.rate !== "" && !isDash && !isRateValue(row.rate)) {
+        issues.push({ type: "issue", msg: "Line " + row.line + ": rate \u201C" + row.rate + "\u201D doesn't look like a number — check for typos or extra text." });
+      }
+      if (noRate) {
+        issues.push({ type: "info", msg: "Line " + row.line + ": no rate published for " + row.origin + " → " + row.region + " (dash in source table)." });
       }
     });
 
+    var issueCount = rows.length - okCount - noRateCount;
     resultsSummary.textContent =
-      rows.length + " line(s) parsed · " + okCount + " fully mapped · " +
-      (rows.length - okCount) + " needing attention";
+      rows.length + " rate lane(s) parsed · " + okCount + " mapped · " +
+      noRateCount + " no rate published · " + issueCount + " needing attention";
 
     parseStatus.textContent = "Last updated: " + new Date().toLocaleTimeString();
 
@@ -346,10 +418,10 @@
       okNote.innerHTML = "<strong>All clear.</strong> Every row has an origin country, a recognized destination region, and a numeric rate.";
       notesIssues.appendChild(okNote);
     }
-    issues.forEach(function (msg) {
+    issues.forEach(function (item) {
       var d = document.createElement("div");
-      d.className = "note-item";
-      d.innerHTML = "<strong>Check this row:</strong> " + escapeHtml(msg);
+      d.className = "note-item" + (item.type === "info" ? " info" : "");
+      d.innerHTML = (item.type === "info" ? "<strong>No rate:</strong> " : "<strong>Check this row:</strong> ") + escapeHtml(item.msg);
       notesIssues.appendChild(d);
     });
     if (rows.length === 0) {
@@ -368,7 +440,7 @@
 
   // ---------- Buttons ----------
   document.getElementById("btn-sample").addEventListener("click", function () {
-    input.value = SAMPLE_TABLE;
+    input.value = SAMPLE_MATRIX;
     render();
   });
   document.getElementById("btn-clear").addEventListener("click", function () {
