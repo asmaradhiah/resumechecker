@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Career Match for Fresh Graduates</title>
+<style>
+  :root{
+    --blue:#2563eb; --blue-dark:#1e40af; --blue-light:#dbeafe; --blue-soft:#eff6ff;
+    --gray-bg:#f5f7fa; --gray-card:#ffffff; --gray-border:#e2e8f0;
+    --text:#1f2937; --text-soft:#6b7280; --green:#059669; --amber:#d97706; --red:#dc2626;
+    --radius:12px; --shadow:0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--gray-bg); color:var(--text); line-height:1.55;
+  }
+  header{
+    background:#fff; border-bottom:1px solid var(--gray-border);
+    padding:20px 32px; display:flex; align-items:center; gap:14px;
+  }
+  .logo{
+    width:40px; height:40px; border-radius:10px; background:var(--blue);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:18px;
+  }
+  header h1{font-size:19px; font-weight:700;}
+  header p{font-size:13px; color:var(--text-soft);}
+  .sample-note{
+    margin:14px auto 0; max-width:1100px; padding:0 32px;
+  }
+  .sample-note span{
+    display:inline-block; background:var(--blue-soft); color:var(--blue-dark);
+    border:1px solid var(--blue-light); border-radius:999px; padding:6px 14px;
+    font-size:12.5px; font-weight:500;
+  }
+  main{max-width:1100px; margin:0 auto; padding:20px 32px 60px; display:flex; flex-direction:column; gap:24px;}
+
+  section{
+    background:var(--gray-card); border:1px solid var(--gray-border);
+    border-radius:var(--radius); box-shadow:var(--shadow); padding:28px;
+  }
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px;}
+  .sec-num{
+    background:var(--blue-light); color:var(--blue-dark); font-weight:700;
+    border-radius:8px; padding:2px 10px; font-size:13px;
+  }
+  .sec-head h2{font-size:18px; font-weight:700;}
+  .sec-sub{color:var(--text-soft); font-size:14px; margin-bottom:20px;}
+
+  /* Section 1 */
+  .upload-grid{display:grid; grid-template-columns:1fr 1.4fr; gap:24px;}
+  .dropzone{
+    border:2px dashed var(--blue-light); background:var(--blue-soft);
+    border-radius:var(--radius); padding:36px 20px; text-align:center; cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .dropzone:hover{border-color:var(--blue); background:#e8f0fe;}
+  .dropzone .icon{font-size:32px; margin-bottom:8px;}
+  .dropzone p{font-size:14px; color:var(--text); font-weight:600;}
+  .dropzone small{display:block; color:var(--text-soft); margin-top:4px; font-size:12px;}
+  .file-chip{
+    margin-top:14px; display:none; align-items:center; gap:10px;
+    background:#fff; border:1px solid var(--gray-border); border-radius:10px;
+    padding:10px 14px; font-size:13.5px;
+  }
+  .file-chip .fname{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .file-chip button{
+    margin-left:auto; background:none; border:1px solid var(--gray-border);
+    border-radius:8px; padding:5px 12px; cursor:pointer; font-size:12.5px; color:var(--text-soft);
+  }
+  .file-chip button:hover{border-color:var(--blue); color:var(--blue);}
+  .profile-card{background:var(--gray-bg); border:1px solid var(--gray-border); border-radius:var(--radius); padding:20px;}
+  .profile-card h3{font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .badge-demo{background:var(--blue-light); color:var(--blue-dark); font-size:11px; font-weight:600; border-radius:999px; padding:2px 10px;}
+  .profile-line{display:flex; gap:8px; font-size:14px; padding:5px 0;}
+  .profile-line .k{color:var(--text-soft); min-width:130px;}
+  .profile-line .v{font-weight:500;}
+  .skill-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;}
+  .skill-tags span{background:var(--blue-light); color:var(--blue-dark); border-radius:999px; padding:3px 12px; font-size:12.5px; font-weight:500;}
+  .example-block{margin-top:24px;}
+  .example-block h3{font-size:15px; font-weight:700; margin-bottom:4px;}
+  .example-block p.hint{font-size:13px; color:var(--text-soft); margin-bottom:14px;}
+  .example-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .example-card{
+    border:1px solid var(--gray-border); border-radius:var(--radius);
+    padding:16px; background:#fafbfc; font-size:13.5px;
+  }
+  .example-card strong{display:block; font-size:14px; margin-bottom:6px;}
+  .example-card .meta{color:var(--text-soft); font-size:12.5px; margin-bottom:8px;}
+  .example-card .tags{display:flex; flex-wrap:wrap; gap:5px;}
+  .example-card .tags span{background:#e5e7eb; color:#374151; border-radius:999px; padding:2px 9px; font-size:11.5px;}
+
+  /* Section 2 */
+  .role-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  .role-card{border:1px solid var(--gray-border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column;}
+  .role-top{background:var(--blue-soft); padding:16px; border-bottom:1px solid var(--gray-border);}
+  .role-top h3{font-size:15.5px; font-weight:700; color:var(--blue-dark);}
+  .match-level{display:inline-block; margin-top:8px; font-size:11.5px; font-weight:700; border-radius:999px; padding:3px 10px;}
+  .match-high{background:var(--blue); color:#fff;}
+  .match-med{background:var(--blue-light); color:var(--blue-dark);}
+  .role-body{padding:16px; display:flex; flex-direction:column; gap:12px; flex:1;}
+  .role-body .note{font-size:13.5px; color:var(--text-soft);}
+  .salary{background:var(--gray-bg); border-radius:10px; padding:12px 14px;}
+  .salary .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-soft); font-weight:600;}
+  .salary .val{font-size:17px; font-weight:700; color:var(--blue-dark); margin-top:2px;}
+  .salary .per{font-size:12px; color:var(--text-soft); font-weight:400;}
+  .salary-note{font-size:11.5px; color:var(--text-soft); margin-top:6px;}
+  .why{font-size:12.5px;}
+  .why strong{color:var(--text); font-size:12.5px;}
+
+  /* Section 3 */
+  .fb-grid{display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start;}
+  .intention-box{background:var(--gray-bg); border:1px solid var(--gray-border); border-radius:var(--radius); padding:20px;}
+  .intention-box h3{font-size:14.5px; font-weight:700; margin-bottom:4px;}
+  .intention-box p.small{font-size:12.5px; color:var(--text-soft); margin-bottom:14px;}
+  .choice{display:block; border:1.5px solid var(--gray-border); background:#fff; border-radius:10px; padding:12px 14px; cursor:pointer; margin-bottom:10px; font-size:13.5px; transition:border-color .15s;}
+  .choice:hover{border-color:var(--blue);}
+  .choice.selected{border-color:var(--blue); background:var(--blue-soft);}
+  .choice strong{display:block; font-size:14px;}
+  .choice small{color:var(--text-soft);}
+  .cv-score-card{margin-top:16px; background:#fff; border:1px solid var(--gray-border); border-radius:var(--radius); padding:18px; text-align:center;}
+  .score-ring{
+    width:96px; height:96px; border-radius:50%; margin:0 auto 10px;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    background:conic-gradient(var(--ring,#2563eb) calc(var(--pct,0)*1%), #e5e7eb 0);
+    position:relative;
+  }
+  .score-ring::before{content:""; position:absolute; inset:9px; background:#fff; border-radius:50%;}
+  .score-ring .num{position:relative; font-size:24px; font-weight:800; color:var(--ring,#2563eb);}
+  .score-ring .outof{position:relative; font-size:11px; color:var(--text-soft);}
+  .score-label{font-size:14px; font-weight:700;}
+  .score-msg{font-size:12.5px; color:var(--text-soft); margin-top:4px;}
+  .score-note{font-size:11px; color:var(--text-soft); margin-top:10px; border-top:1px dashed var(--gray-border); padding-top:8px;}
+
+  .tips-panel h3{font-size:15px; font-weight:700; margin-bottom:4px;}
+  .tips-panel p.intro{font-size:13px; color:var(--text-soft); margin-bottom:14px;}
+  .tip{
+    display:flex; gap:12px; border:1px solid var(--gray-border); border-radius:10px;
+    padding:13px 16px; margin-bottom:10px; background:#fafbfc;
+  }
+  .tip .t-ico{width:28px; height:28px; border-radius:8px; background:var(--blue-light); color:var(--blue-dark); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px;}
+  .tip strong{font-size:13.5px; display:block;}
+  .tip p{font-size:12.5px; color:var(--text-soft);}
+  .learning{
+    margin-top:18px; border:1px solid var(--blue-light); background:var(--blue-soft);
+    border-radius:var(--radius); padding:18px; display:none;
+  }
+  .learning h4{font-size:14px; font-weight:700; color:var(--blue-dark); margin-bottom:4px;}
+  .learning p.small{font-size:12.5px; color:var(--text-soft); margin-bottom:12px;}
+  .topic-tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .topic-tags span{background:#fff; border:1px solid var(--blue-light); color:var(--blue-dark); border-radius:999px; padding:4px 12px; font-size:12.5px; font-weight:500;}
+  .course-list{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .course{
+    background:#fff; border:1px solid var(--gray-border); border-radius:10px; padding:12px 14px;
+  }
+  .course strong{font-size:13px; display:block;}
+  .course small{font-size:12px; color:var(--text-soft);}
+  .course .prov{display:inline-block; margin-top:6px; font-size:11px; font-weight:600; color:var(--blue-dark); background:var(--blue-light); border-radius:999px; padding:2px 9px;}
+  .disclaimer{margin-top:14px; font-size:11.5px; color:var(--text-soft); border-top:1px solid var(--gray-border); padding-top:10px;}
+
+  footer{max-width:1100px; margin:0 auto; padding:0 32px 40px; font-size:12px; color:var(--text-soft);}
+
+  @media(max-width:860px){
+    .upload-grid,.example-cards,.role-grid,.fb-grid,.course-list{grid-template-columns:1fr;}
+    main{padding:16px;}
+    section{padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI</div>
+  <div>
+    <h1>AI Career Match for Fresh Graduates</h1>
+    <p>Upload a resume, discover entry-level roles and salaries in Malaysia, and get a simple CV rating with learning suggestions.</p>
+  </div>
+</header>
+
+<div class="sample-note"><span>ℹ️ Demo app — all profiles, salaries and scores shown are sample data for illustration only. Nothing is saved between visits.</span></div>
+
+<main>
+
+  <!-- SECTION 1 -->
+  <section id="sec1">
+    <div class="sec-head"><span class="sec-num">1</span><h2>Resume Upload</h2></div>
+    <p class="sec-sub">Add your resume and see a quick profile summary right away.</p>
+
+    <div class="upload-grid">
+      <div>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload resume">
+          <div class="icon">📄</div>
+          <p>Click to upload your resume</p>
+          <small>PDF, DOCX or TXT — parsed locally in your browser, never uploaded anywhere</small>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden>
+        <div class="file-chip" id="fileChip">
+          <span>📎</span>
+          <span class="fname" id="fileName"></span>
+          <button id="replaceBtn" type="button">Replace</button>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <h3>Quick Profile Summary <span class="badge-demo" id="profileBadge">example entry</span></h3>
+        <div id="profileBody">
+          <div class="profile-line"><span class="k">Name</span><span class="v">Nurul Aisyah Binti Rahman</span></div>
+          <div class="profile-line"><span class="k">Education</span><span class="v">BSc (Hons) Computer Science, Universiti Malaya — CGPA 3.4</span></div>
+          <div class="profile-line"><span class="k">Field</span><span class="v">Information Technology</span></div>
+          <div class="profile-line"><span class="k">Experience</span><span class="v">2 internships (6 months total, software testing &amp; web dev)</span></div>
+          <div class="profile-line"><span class="k">Location</span><span class="v">Kuala Lumpur, Malaysia</span></div>
+          <div class="profile-line"><span class="k">Languages</span><span class="v">Bahasa Malaysia (native), English (fluent)</span></div>
+          <div class="profile-line" style="align-items:flex-start;"><span class="k" style="padding-top:4px;">Skills</span>
+            <span class="skill-tags"><span>Python</span><span>JavaScript</span><span>SQL</span><span>Git</span><span>HTML/CSS</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example-block">
+      <h3>Example resume entries</h3>
+      <p class="hint">Made-up sample profiles from Malaysia so the app is never empty. Click one to load it into the profile summary, or upload your own file.</p>
+      <div class="example-cards" id="exampleCards"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section id="sec2">
+    <div class="sec-head"><span class="sec-num">2</span><h2>Role Match and Salary</h2></div>
+    <p class="sec-sub">Entry-level roles that fit the loaded resume, with typical Malaysian salary ranges. Ranges are sample figures for fresh graduates, not live market data.</p>
+    <div class="role-grid" id="roleGrid"></div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section id="sec3">
+    <div class="sec-head"><span class="sec-num">3</span><h2>Resume Feedback and Learning Path</h2></div>
+    <p class="sec-sub">Pick your target intention to get a CV rating, tailored improvement tips, and learning suggestions if your CV is under-ready.</p>
+
+    <div class="fb-grid">
+      <div>
+        <div class="intention-box">
+          <h3>Your target intention</h3>
+          <p class="small">Choose where you want to go next.</p>
+          <div class="choice selected" data-intent="same" role="button" tabindex="0">
+            <strong>Stay in the same role</strong>
+            <small>I want to strengthen my CV for roles matching my field</small>
+          </div>
+          <div class="choice" data-intent="different" role="button" tabindex="0">
+            <strong>Switch to a different role</strong>
+            <small>I want to move into a new area from my current field</small>
+          </div>
+        </div>
+
+        <div class="cv-score-card">
+          <div class="score-ring" id="scoreRing"><span class="num" id="scoreNum">68</span><span class="outof">/ 100</span></div>
+          <div class="score-label" id="scoreLabel">Sample CV rating: Developing</div>
+          <div class="score-msg" id="scoreMsg"></div>
+          <div class="score-note">Illustrative score generated from simple keyword checks on the loaded profile — not a real recruiter assessment.</div>
+        </div>
+      </div>
+
+      <div class="tips-panel">
+        <h3>Tailored improvement tips</h3>
+        <p class="intro" id="tipsIntro"></p>
+        <div id="tipsList"></div>
+
+        <div class="learning" id="learningBox">
+          <h4>📚 Learning suggestions — your CV is not ready yet</h4>
+          <p class="small" id="learningMsg"></p>
+          <div class="topic-tags" id="topicTags"></div>
+          <div class="course-list" id="courseList"></div>
+        </div>
+
+        <p class="disclaimer">Course names such as Rakyat Digital and Coursera are shown as examples of platforms to explore, not live listings or enrolment offers. All advice in this demo is generated from sample data.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Demo only — everything runs in your browser, nothing is saved or sent anywhere.</footer>
+
+<script>
+/* ---------------- Sample data (made up, Malaysia-specific) ---------------- */
+const EXAMPLE_PROFILES = [
+  {
+    id: "aisyah",
+    name: "Nurul Aisyah Binti Rahman",
+    fileName: "NurulAisyah_Resume.pdf",
+    badge: "example entry",
+    education: "BSc (Hons) Computer Science, Universiti Malaya — CGPA 3.4",
+    field: "Information Technology",
+    experience: "2 internships (6 months total, software testing & web dev)",
+    location: "Kuala Lumpur, Malaysia",
+    languages: "Bahasa Malaysia (native), English (fluent)",
+    skills: ["Python","JavaScript","SQL","Git","HTML/CSS"],
+    roles: [
+      {title:"Junior Software Developer", level:"Strong match", high:true,
+       note:"Your internships in web development and Git experience fit typical junior developer hiring.",
+       salary:"RM 3,200 – RM 4,200", per:"per month",
+       why:"Matches: Python, JavaScript, Git, internship experience"},
+      {title:"QA / Software Tester (Entry Level)", level:"Good match", high:false,
+       note:"Your software testing internship is directly relevant for junior QA roles at tech firms and banks.",
+       salary:"RM 2,800 – RM 3,600", per:"per month",
+       why:"Matches: testing internship, CS degree, detail-oriented projects"},
+      {title:"Data Analyst (Graduate Trainee)", level:"Possible match", high:false,
+       note:"SQL and Python cover the basics; you would need to show reporting or dashboard experience.",
+       salary:"RM 3,000 – RM 4,000", per:"per month",
+       why:"Matches: SQL, Python; gap: no data visualisation portfolio"}
+    ],
+    baseScore: 68,
+    tips: {
+      same: {
+        intro:"Advice for strengthening your CV for roles matching your IT field:",
+        items:[
+          ["💡","Lead with your internships","Put your 2 internships above coursework, with one line each on what you built or tested and the outcome."],
+          ["🛠️","Add a small project portfolio","Link 1–2 GitHub projects with a short README. Junior developer shortlists in Malaysia often check this."],
+          ["📐","Quantify your testing work","e.g. 'Wrote 40+ test cases covering 3 modules' — numbers make QA experience credible."]
+        ]
+      },
+      different: {
+        intro:"Advice for switching from IT into a different role area:",
+        items:[
+          ["🔄","Reposition your headline","Retitle your CV summary from 'CS graduate' to the target field, e.g. 'Graduate aspiring to data analytics' so screeners see intent."],
+          ["🧩","Bridge your transferable skills","Frame SQL, Python and Git as tools for the new role rather than developer-only skills."],
+          ["🎓","Close the skill gap visibly","List one short course or certification in the target field in progress — it shows commitment."]
+        ]
+      }
+    },
+    underReady: true,
+    topics: ["Data visualisation (Power BI / Tableau basics)","Applied statistics fundamentals","Git & GitHub collaboration workflow","Technical writing for reports"],
+    courses: [
+      ["Google Data Analytics (example path)","Beginner-friendly series covering spreadsheets, SQL and dashboards","Coursera"],
+      ["Rakyat Digital digital-skills track","Malaysian government-backed digital upskilling courses for fresh graduates","Rakyat Digital"],
+      ["Python for Everybody","Gentle Python refresh useful for both analytics and QA automation","Coursera"]
+    ]
+  },
+  {
+    id: "hafiz",
+    name: "Muhammad Hafiz Bin Abdullah",
+    fileName: "HafizAbdullah_CV.docx",
+    badge: "example entry",
+    education: "Bachelor of Accounting (Hons), UiTM Shah Alam — CGPA 3.1",
+    field: "Accounting & Finance",
+    experience: "3-month internship at an accounting firm in Petaling Jaya",
+    location: "Shah Alam, Selangor",
+    languages: "Bahasa Malaysia (native), English (proficient)",
+    skills: ["Excel (incl. pivot tables)","AutoCount","Bookkeeping","Financial reporting basics","English business writing"],
+    roles: [
+      {title:"Junior Accountant", level:"Strong match", high:true,
+       note:"Your internship at an accounting firm plus AutoCount exposure matches typical junior accountant openings.",
+       salary:"RM 3,000 – RM 3,800", per:"per month",
+       why:"Matches: accounting degree, AutoCount, firm internship"},
+      {title:"Audit Associate (Big 4 / mid-tier)", level:"Good match", high:false,
+       note:"Audit firms in Malaysia hire fresh accounting grads in batches; highlight your internship audit exposure.",
+       salary:"RM 3,200 – RM 4,000", per:"per month",
+       why:"Matches: accounting degree, internship; gap: no audit-specific projects"},
+      {title:"Finance / Accounts Executive (SME)", level:"Good match", high:false,
+       note:"SMEs value hands-on bookkeeping and Excel skills like yours for immediate contribution.",
+       salary:"RM 2,800 – RM 3,500", per:"per month",
+       why:"Matches: bookkeeping, pivot tables, reporting basics"}
+    ],
+    baseScore: 55,
+    tips: {
+      same: {
+        intro:"Advice for strengthening your CV for accounting roles:",
+        items:[
+          ["💡","Add your progress milestones","Note ACCA / CPA stages if started, or your SPM results and CGPA — Malaysian accounting recruiters expect them."],
+          ["🛠️","List software by name","State AutoCount, SQL Account or UBS versions you used. SME shortlists filter on these exact tools."],
+          ["📐","Quantify internship tasks","e.g. 'Reconciled 60+ supplier invoices weekly' beats 'assisted with bookkeeping'."]
+        ]
+      },
+      different: {
+        intro:"Advice for switching from accounting into a different field:",
+        items:[
+          ["🔄","Lead with the new-field goal","Open your CV with one clear line about the target role so recruiters immediately see the switch is intentional."],
+          ["🧩","Map finance skills across","Present Excel, reconciliation and reporting as analytical skills useful in operations, data or fintech roles."],
+          ["🎓","Show you are retraining","An in-progress course in the new field on your CV signals commitment more than a cover letter."]
+        ]
+      }
+    },
+    underReady: true,
+    topics: ["Advanced Excel & financial modelling","ACCA preparatory fundamentals","Business data analysis basics","Professional English communication"],
+    courses: [
+      ["Excel Skills for Business (example path)","Structured Excel series from basics to business modelling","Coursera"],
+      ["Rakyat Digital finance & digital skills","Government-backed upskilling modules relevant to finance roles","Rakyat Digital"],
+      ["Introduction to Financial Accounting","Refresher that also helps non-accounting analyst roles","Coursera"]
+    ]
+  },
+  {
+    id: "mei",
+    name: "Lim Mei Ling",
+    fileName: "LimMeiLing_Resume.pdf",
+    badge: "example entry",
+    education: "Bachelor of Marketing (Hons), Universiti Tunku Abdul Rahman (UTAR) — CGPA 3.6",
+    field: "Marketing & Communications",
+    experience: "Campus marketing club lead + 4-month internship at a Penang e-commerce startup",
+    location: "George Town, Penang",
+    languages: "Bahasa Malaysia, English (fluent), Mandarin (native)",
+    skills: ["Social media content","Canva","Meta Ads basics","Copywriting","Google Analytics (intro)"],
+    roles: [
+      {title:"Digital Marketing Executive (Entry Level)", level:"Strong match", high:true,
+       note:"Your e-commerce internship and Meta Ads basics match typical junior digital marketing openings.",
+       salary:"RM 2,800 – RM 3,600", per:"per month",
+       why:"Matches: social media, Meta Ads, internship at an e-commerce firm"},
+      {title:"Content / Social Media Executive", level:"Strong match", high:true,
+       note:"Trilingual copywriting plus Canva design is a strong combination for content roles at agencies.",
+       salary:"RM 2,600 – RM 3,400", per:"per month",
+       why:"Matches: copywriting, Canva, trilingual content ability"},
+      {title:"Marketing Assistant (FMCG / Retail brand)", level:"Good match", high:false,
+       note:"Brands hire graduates for campaign support; add analytics results to stand out.",
+       salary:"RM 2,700 – RM 3,300", per:"per month",
+       why:"Matches: campaign experience; gap: limited analytics evidence"}
+    ],
+    baseScore: 74,
+    tips: {
+      same: {
+        intro:"Advice for strengthening your CV for marketing roles:",
+        items:[
+          ["💡","Show campaign results with numbers","e.g. 'Grew club's Instagram from 400 to 1,900 followers in 2 semesters' — outcomes beat responsibilities."],
+          ["🛠️","Build a mini portfolio","Compile 3–4 content samples (posts, captions, simple visuals) into a link on your CV."],
+          ["📐","Name your ad tools clearly","State Meta Ads Manager and Google Analytics tasks precisely instead of 'digital marketing support'."]
+        ]
+      },
+      different: {
+        intro:"Advice for switching from marketing into a different field:",
+        items:[
+          ["🔄","Write a switch-specific summary","Replace the generic marketing objective with one line naming the new role you are targeting."],
+          ["🧩","Reframe creative work as data work","Highlight the Google Analytics and campaign-measurement parts when targeting analyst-style roles."],
+          ["🎓","Add a starter course in the new area","One listed in-progress course makes a career switch look planned, not impulsive."]
+        ]
+      }
+    },
+    underReady: false,
+    topics: [],
+    courses: []
+  }
+];
+
+const INTENT_LABEL = { same:"Stay in the same role", different:"Switch to a different role" };
+
+/* ---------------- State ---------------- */
+let current = EXAMPLE_PROFILES[0];
+let fromUpload = false;
+let intent = "same";
+let score = current.baseScore;
+
+/* ---------------- Helpers ---------------- */
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------------- Section 1: examples + upload ---------------- */
+function renderExamples(){
+  $("exampleCards").innerHTML = EXAMPLE_PROFILES.map(p => `
+    <div class="example-card">
+      <strong>${esc(p.name)}</strong>
+      <div class="meta">${esc(p.education.split(",")[0])}<br>${esc(p.location)}</div>
+      <div class="tags">${p.skills.slice(0,3).map(s=>`<span>${esc(s)}</span>`).join("")}</div>
+    </div>`).join("");
+}
+
+function renderProfile(p, badge){
+  $("profileBadge").textContent = badge;
+  $("profileBody").innerHTML = `
+    <div class="profile-line"><span class="k">Name</span><span class="v">${esc(p.name)}</span></div>
+    <div class="profile-line"><span class="k">Education</span><span class="v">${esc(p.education)}</span></div>
+    <div class="profile-line"><span class="k">Field</span><span class="v">${esc(p.field)}</span></div>
+    <div class="profile-line"><span class="k">Experience</span><span class="v">${esc(p.experience)}</span></div>
+    <div class="profile-line"><span class="k">Location</span><span class="v">${esc(p.location)}</span></div>
+    <div class="profile-line"><span class="k">Languages</span><span class="v">${esc(p.languages)}</span></div>
+    <div class="profile-line" style="align-items:flex-start;"><span class="k" style="padding-top:4px;">Skills</span>
+      <span class="skill-tags">${p.skills.map(s=>`<span>${esc(s)}</span>`).join("")}</span></div>`;
+}
+
+function showFileChip(name){ $("fileName").textContent = name; $("fileChip").style.display = "flex"; }
+
+/* Feature 1: upload + parse */
+function handleFile(file){
+  if(!file) return;
+  showFileChip(file.name);
+  // Local, browser-side "parsing": derive a sample summary from the file name,
+  // since a real document parser is out of scope for this offline demo.
+  const clean = file.name.replace(/\.(pdf|docx?|txt)$/i,"").replace(/[_\-]+/g," ").replace(/\s+/g," ").trim();
+  const guessedName = clean || "Your Resume";
+  const sample = {
+    name: guessedName + " (extracted)",
+    fileName: file.name,
+    education: "Detected from your file — education section placeholder (demo parser)",
+    field: "Detected field: Information Technology (sample)",
+    experience: "Detected experience: 1–2 internships or part-time roles (sample)",
+    location: "Detected location: Malaysia (sample)",
+    languages: "Detected languages: Bahasa Malaysia, English (sample)",
+    skills: ["Detected skill #1","Detected skill #2","Detected skill #3","Add more real skills in a full version"],
+    roles: [
+      {title:"Junior Software Developer", level:"Sample match", high:true,
+       note:"Based on the detected IT profile, junior development roles are a typical entry point.",
+       salary:"RM 3,200 – RM 4,200", per:"per month",
+       why:"Sample match based on detected technical skills"},
+      {title:"QA / Software Tester (Entry Level)", level:"Sample match", high:false,
+       note:"Entry QA roles commonly accept fresh graduates with basic technical skills.",
+       salary:"RM 2,800 – RM 3,600", per:"per month",
+       why:"Sample match based on detected coursework"},
+      {title:"Technical Support Engineer (Graduate)", level:"Sample match", high:false,
+       note:"A common first role for fresh IT graduates to build product knowledge.",
+       salary:"RM 2,600 – RM 3,400", per:"per month",
+       why:"Sample match for graduate IT profiles"}
+    ],
+    baseScore: 60,
+    underReady: true,
+    topics: ["SQL fundamentals","Cloud basics (AWS / Azure intro)","Git & GitHub workflow","Professional English communication"],
+    courses: [
+      ["Google IT Support (example path)","Well-known beginner path into technical roles","Coursera"],
+      ["Rakyat Digital digital-skills track","Government-backed upskilling courses for Malaysian fresh graduates","Rakyat Digital"]
+    ],
+    tips: {
+      same: {
+        intro:"Advice for strengthening your uploaded CV for IT field roles:",
+        items:[
+          ["💡","Add a clear headline","Put your target role and key skills in a summary line at the top of your CV."],
+          ["🛠️","List projects, not just modules","One GitHub project with a README is worth more than a list of university subjects."],
+          ["📐","Quantify everything possible","Numbers (users, test cases, uptime) make graduate CVs stand out."]
+        ]
+      },
+      different: {
+        intro:"Advice for switching from your current field into a new role:",
+        items:[
+          ["🔄","State the new target explicitly","Open with a one-line objective naming the role you want to switch into."],
+          ["🧩","Translate your skills","Rephrase existing technical skills in the vocabulary of the target field."],
+          ["🎓","Show visible retraining","Add an in-progress course or certification in the new field to your CV."]
+        ]
+      }
+    }
+  };
+  current = sample;
+  fromUpload = true;
+  renderProfile(sample, "extracted from your file");
+  renderRoles(sample);
+  score = sample.baseScore;
+  updateSection3();
+}
+
+$("dropzone").addEventListener("click", () => $("fileInput").click());
+$("dropzone").addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("fileInput").click(); }});
+$("fileInput").addEventListener("change", e => handleFile(e.target.files[0]));
+$("replaceBtn").addEventListener("click", () => $("fileInput").click());
+
+/* ---------------- Section 2: roles ---------------- */
+function renderRoles(p){
+  $("roleGrid").innerHTML = p.roles.map(r => `
+    <div class="role-card">
+      <div class="role-top">
+        <h3>${esc(r.title)}</h3>
+        <span class="match-level ${r.high ? "match-high" : "match-med"}">${esc(r.level)}</span>
+      </div>
+      <div class="role-body">
+        <p class="note">${esc(r.note)}</p>
+        <div class="salary">
+          <div class="lbl">Typical salary range</div>
+          <div class="val">${esc(r.salary)} <span class="per">${esc(r.per)}</span></div>
+          <div class="salary-note">Sample range for fresh graduates in Malaysia — for illustration only.</div>
+        </div>
+        <p class="why"><strong>Why it matches:</strong> ${esc(r.why)}</p>
+      </div>
+    </div>`).join("");
+}
+
+/* ---------------- Section 3: intention, score, tips, learning ---------------- */
+function computeAdjustedScore(){
+  // Simple illustrative logic: switching fields costs readiness points.
+  return intent === "same" ? current.baseScore : Math.max(30, current.baseScore - 18);
+}
+
+function ratingBand(s){
+  if(s >= 70) return ["Ready", "Your CV looks reasonably prepared for this path. Keep polishing the details below.", "var(--green)", s];
+  if(s >= 50) return ["Developing", "Your CV has a decent base but needs the improvements below before it is competitive.", "var(--amber)", s];
+  return ["Under-ready", "This CV is not ready yet for this path. Follow the tips and start the learning suggestions below.", "var(--red)", s];
+}
+
+function updateSection3(){
+  score = computeAdjustedScore();
+  const [band, msg, color] = ratingBand(score);
+  const tips = current.tips[intent];
+
+  $("scoreRing").style.setProperty("--pct", score);
+  $("scoreRing").style.setProperty("--ring", color);
+  $("scoreNum").textContent = score;
+  $("scoreNum").style.color = color;
+  $("scoreLabel").textContent = "Sample CV rating: " + band;
+  $("scoreMsg").textContent = msg + " (Selected: " + INTENT_LABEL[intent] + ".)";
+
+  $("tipsIntro").textContent = tips.intro;
+  $("tipsList").innerHTML = tips.items.map(([ico, t, d]) => `
+    <div class="tip"><div class="t-ico">${ico}</div><div><strong>${esc(t)}</strong><p>${esc(d)}</p></div></div>`).join("");
+
+  // Feature 3: learning suggestions when under-ready
+  const box = $("learningBox");
+  if(current.underReady || score < 50){
+    box.style.display = "block";
+    $("learningMsg").textContent = intent === "same"
+      ? "Because your sample CV rating is below the ready threshold, here are learning topics and example platforms to upskill before applying."
+      : "Switching to a different role means new skills are expected. These learning topics and example platforms can help you bridge the gap.";
+    $("topicTags").innerHTML = current.topics.map(t=>`<span>${esc(t)}</span>`).join("");
+    $("courseList").innerHTML = current.courses.map(([t,d,prov]) => `
+      <div class="course"><strong>${esc(t)}</strong><small>${esc(d)}</small><span class="prov">${esc(prov)}</span></div>`).join("");
+  } else {
+    box.style.display = "none";
+  }
+}
+
+document.querySelectorAll(".choice").forEach(el => {
+  const select = () => {
+    document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+    el.classList.add("selected");
+    intent = el.dataset.intent;
+    updateSection3();
+  };
+  el.addEventListener("click", select);
+  el.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); select(); }});
+});
+
+/* ---------------- Init: app starts with example data visible ---------------- */
+renderExamples();
+renderProfile(EXAMPLE_PROFILES[0], "example entry");
+renderRoles(EXAMPLE_PROFILES[0]);
+updateSection3();
+</script>
+</body>
+</html>
