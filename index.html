@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teleport FSC Rate Mapper</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #6b7680;
+    --line: #d7dde3;
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --accent: #0b5cad;
+    --accent-soft: #e8f1fa;
+    --warn-bg: #fff4e5;
+    --warn-border: #e0a437;
+    --ok-bg: #e9f7ee;
+    --ok-ink: #1e6b3a;
+    --head-bg: #eef1f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 24px;
+  }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 24px;
+  }
+  section > h2 {
+    margin: 0;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--head-bg);
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  section > h2 .purpose { font-size: 12px; font-weight: normal; color: var(--muted); }
+  .body { padding: 16px 20px 20px; }
+  .helper {
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    margin: 0 0 12px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 190px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    resize: vertical;
+    color: var(--ink);
+  }
+  textarea:focus { outline: 2px solid var(--accent); }
+  .actions { margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { background: #094c8f; }
+  button.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  button.secondary:hover { background: var(--accent-soft); }
+  .sample-label { font-size: 12px; color: var(--muted); margin: 14px 0 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .sample-box {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    background: #fbfcfd;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 10px 12px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; font-size: 14px; }
+  th { background: var(--head-bg); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  td.rate { font-weight: 600; white-space: nowrap; }
+  td.pair { color: var(--accent); font-weight: 600; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .badge.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .empty-msg { color: var(--muted); font-style: italic; }
+  .note-item {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--warn-border);
+    background: var(--warn-bg);
+    border-radius: 0 4px 4px 0;
+    font-size: 14px;
+  }
+  .note-item.ok { border-left-color: var(--ok-ink); background: var(--ok-bg); }
+  .summary-line { font-size: 13px; color: var(--muted); margin: 8px 0 12px; }
+  .notes-columns { display: flex; gap: 16px; flex-wrap: wrap; }
+  .notes-columns > div { flex: 1 1 300px; }
+  .notes-columns h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 8px; }
+  ul.reminders { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink); }
+  ul.reminders li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Teleport FSC Rate Mapper</h1>
+  <p>Paste a monthly FSC rate table, review the mapped origin-to-destination rates, and scan flagged issues — all on one screen. Nothing is saved between visits.</p>
+</header>
+
+<main>
+
+  <!-- SECTION 1: Paste Rate Table -->
+  <section id="section-paste">
+    <h2>1. Paste Rate Table <span class="purpose">Paste or edit the monthly FSC rate table text below</span></h2>
+    <div class="body">
+      <p class="helper">Tip: paste directly from your spreadsheet or email. Each line should read like
+        <strong>Origin Country | Destination Region | Rate</strong> — pipes, tabs, commas, or extra spaces all work as separators.
+        Results in Section 2 update automatically as you type.</p>
+      <textarea id="rate-input" spellcheck="false" aria-label="FSC rate table text input"></textarea>
+      <div class="actions">
+        <button id="btn-parse" type="button">Re-parse Table</button>
+        <button id="btn-sample" type="button" class="secondary">Load Malaysia Sample</button>
+        <button id="btn-clear" type="button" class="secondary">Clear</button>
+        <span id="parse-status" style="font-size:13px;color:var(--muted);"></span>
+      </div>
+
+      <p class="sample-label">Sample pasted table (for reference)</p>
+      <div class="sample-box" id="sample-box"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Mapped Results -->
+  <section id="section-results">
+    <h2>2. Mapped Results <span class="purpose">Country-to-region rate rows extracted from your table</span></h2>
+    <div class="body">
+      <p class="summary-line" id="results-summary"></p>
+      <div style="overflow-x:auto;">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Origin Country</th>
+              <th>Destination Region</th>
+              <th>FSC Rate</th>
+              <th>Grouped Pair</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Quick Notes -->
+  <section id="section-notes">
+    <h2>3. Quick Notes <span class="purpose">Issues and reminders to check before using the results</span></h2>
+    <div class="body">
+      <div class="notes-columns">
+        <div>
+          <h3>Flagged Issues</h3>
+          <div id="notes-issues"></div>
+        </div>
+        <div>
+          <h3>Simple Reminders</h3>
+          <ul class="reminders">
+            <li>Rates shown here are parsed from the text you pasted — always confirm against the official monthly FSC notice before quoting.</li>
+            <li>Check that each destination region uses your team's standard names (e.g. APAC, EMEA, Americas).</li>
+            <li>A rate without a unit (per kg, per shipment) is listed as-is — add the unit in the source table if your quotes need it.</li>
+            <li>This page holds nothing between visits: copy results out before closing the tab.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Sample data (made up, Malaysia-specific, for demo only) ----------
+  var SAMPLE_TABLE = [
+    "Malaysia | APAC | 0.42",
+    "Malaysia | EMEA | 0.68",
+    "Malaysia | Americas | 0.75"
+  ].join("\n");
+
+  var SAMPLE_BOX_TEXT =
+    "Malaysia | APAC      | 0.42\n" +
+    "Malaysia | EMEA      | 0.68\n" +
+    "Malaysia | Americas  | 0.75";
+
+  // Standard destination regions recognized by the mapper
+  var KNOWN_REGIONS = [
+    "APAC", "EMEA", "Americas", "Middle East", "South Asia",
+    "North Asia", "Europe", "Africa", "Oceania", "Domestic"
+  ];
+
+  // ---------- Element refs ----------
+  var input = document.getElementById("rate-input");
+  var resultsBody = document.getElementById("results-body");
+  var resultsSummary = document.getElementById("results-summary");
+  var parseStatus = document.getElementById("parse-status");
+  var notesIssues = document.getElementById("notes-issues");
+  var sampleBox = document.getElementById("sample-box");
+
+  // ---------- Parsing ----------
+  // Splits each line on pipe, tab, comma, or runs of 2+ spaces.
+  function parseTable(text) {
+    var rows = [];
+    var lines = text.split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var raw = lines[i].trim();
+      if (!raw) continue;
+      // skip obvious header lines like "Origin | Region | Rate"
+      if (/^origin/i.test(raw) && /region|dest|rate/i.test(raw)) continue;
+      var parts = raw.split(/\t|\||,|\s{2,}/).map(function (p) { return p.trim(); })
+                    .filter(function (p) { return p !== ""; });
+      rows.push({
+        line: i + 1,
+        raw: raw,
+        origin: parts.length > 0 ? parts[0] : "",
+        region: parts.length > 1 ? parts[1] : "",
+        rate: parts.length > 2 ? parts[2] : ""
+      });
+    }
+    return rows;
+  }
+
+  function isNumericRate(s) {
+    return /^[$€]?\s*\d+(\.\d+)?\s*(MYR|USD|EUR)?(\s*\/\s*kg)?$/i.test(s);
+  }
+
+  function regionStatus(region) {
+    if (!region) return "missing";
+    for (var i = 0; i < KNOWN_REGIONS.length; i++) {
+      if (KNOWN_REGIONS[i].toLowerCase() === region.toLowerCase()) return "known";
+    }
+    return "unclear";
+  }
+
+  // ---------- Rendering ----------
+  function render() {
+    var rows = parseTable(input.value);
+    var okCount = 0;
+    var issues = [];
+
+    resultsBody.innerHTML = "";
+
+    if (rows.length === 0) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = '<td colspan="6" class="empty-msg">No rows detected — paste a table above to see mapped results.</td>';
+      resultsBody.appendChild(tr);
+    }
+
+    rows.forEach(function (row, idx) {
+      var rStatus = regionStatus(row.region);
+      var rateOk = row.rate !== "" && isNumericRate(row.rate);
+      var originOk = row.origin !== "";
+      var complete = originOk && rStatus === "known" && rateOk;
+      if (complete) okCount++;
+
+      var statusBadge = complete
+        ? '<span class="badge ok">Mapped</span>'
+        : '<span class="badge warn">Needs attention</span>';
+
+      var pairText = originOk && row.region
+        ? row.origin + " → " + row.region
+        : "—";
+
+      var tr = document.createElement("tr");
+      if (!complete) tr.style.background = "#fffaf0";
+      tr.innerHTML =
+        "<td>" + (idx + 1) + "</td>" +
+        "<td>" + escapeHtml(originOk ? row.origin : "(missing)") + "</td>" +
+        "<td>" + escapeHtml(row.region || "(missing)") + "</td>" +
+        '<td class="rate">' + escapeHtml(row.rate || "(missing)") + "</td>" +
+        '<td class="pair">' + escapeHtml(pairText) + "</td>" +
+        "<td>" + statusBadge + "</td>";
+      resultsBody.appendChild(tr);
+
+      // Collect issues for Quick Notes
+      if (!originOk) {
+        issues.push("Line " + row.line + ": origin country is missing — text: \u201C" + row.raw + "\u201D");
+      }
+      if (!row.region) {
+        issues.push("Line " + row.line + ": destination region is missing for \u201C" + row.origin + "\u201D.");
+      } else if (rStatus === "unclear") {
+        issues.push("Line " + row.line + ": destination region \u201C" + row.region + "\u201D is not a standard region name (expected e.g. APAC, EMEA, Americas).");
+      }
+      if (row.rate === "") {
+        issues.push("Line " + row.line + ": rate value is missing.");
+      } else if (!rateOk) {
+        issues.push("Line " + row.line + ": rate \u201C" + row.rate + "\u201D doesn't look like a number — check for typos or extra text.");
+      }
+    });
+
+    resultsSummary.textContent =
+      rows.length + " line(s) parsed · " + okCount + " fully mapped · " +
+      (rows.length - okCount) + " needing attention";
+
+    parseStatus.textContent = "Last updated: " + new Date().toLocaleTimeString();
+
+    // Quick Notes — flagged issues
+    notesIssues.innerHTML = "";
+    if (rows.length > 0 && issues.length === 0) {
+      var okNote = document.createElement("div");
+      okNote.className = "note-item ok";
+      okNote.innerHTML = "<strong>All clear.</strong> Every row has an origin country, a recognized destination region, and a numeric rate.";
+      notesIssues.appendChild(okNote);
+    }
+    issues.forEach(function (msg) {
+      var d = document.createElement("div");
+      d.className = "note-item";
+      d.innerHTML = "<strong>Check this row:</strong> " + escapeHtml(msg);
+      notesIssues.appendChild(d);
+    });
+    if (rows.length === 0) {
+      var emptyNote = document.createElement("div");
+      emptyNote.className = "note-item";
+      emptyNote.innerHTML = "<strong>Nothing parsed yet.</strong> Paste a rate table in Section 1 to get started.";
+      notesIssues.appendChild(emptyNote);
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------- Buttons ----------
+  document.getElementById("btn-sample").addEventListener("click", function () {
+    input.value = SAMPLE_TABLE;
+    render();
+  });
+  document.getElementById("btn-clear").addEventListener("click", function () {
+    input.value = "";
+    render();
+    input.focus();
+  });
+  document.getElementById("btn-parse").addEventListener("click", render);
+
+  // Live update on edit
+  input.addEventListener("input", render);
+
+  // ---------- Init: app never opens empty ----------
+  sampleBox.textContent = SAMPLE_BOX_TEXT;
+  input.value = SAMPLE_TABLE;
+  render();
+})();
+</script>
+
+</body>
+</html>
